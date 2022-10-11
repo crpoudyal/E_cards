@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:memesansar/screen/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,9 +12,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Meme Sansar',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.pink,
       ),
+      home: HomeScreen(),
     );
   }
 }
