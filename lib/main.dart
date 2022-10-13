@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:memesansar/screen/home_screen.dart';
 import 'package:memesansar/screen/splash_screen.dart';
 
 void main() {
