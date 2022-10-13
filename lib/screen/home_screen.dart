@@ -16,7 +16,8 @@ class HomeScreenState extends State<HomeScreen> {
   String text = "";
   double top = 10;
   double left = 10;
-  Color color = Colors.orange;
+  Color bgcolor = Colors.orange;
+  Color txColor = Colors.white;
   File? _image;
   Future getImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -55,11 +56,13 @@ class HomeScreenState extends State<HomeScreen> {
                             },
                             icon: const Icon(Icons.image)),
                         IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              pickTxColor(context);
+                            },
                             icon: const Icon(Icons.text_format)),
                         IconButton(
                             onPressed: () {
-                              pickColor(context);
+                              pickBgColor(context);
                             },
                             icon: const Icon(Icons.format_color_fill)),
                         IconButton(
@@ -70,46 +73,38 @@ class HomeScreenState extends State<HomeScreen> {
                     const SizedBox(
                       height: 10,
                     ),
-                    RepaintBoundary(
-                      child: GestureDetector(
-                        child: Stack(
-                          children: [
-                            _image != null
-                                ? InteractiveViewer(
-                                    child: Image.file(
-                                      _image!,
-                                      height: 300,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  )
-                                : Container(
-                                    height: 300,
-                                    width: double.infinity,
-                                    decoration:  BoxDecoration(
-                                      color: color,
-                                    ),
-                                  ),
-                            Positioned(
+                    GestureDetector(
+                      child: Stack(
+                        children: [
+                          _image != null
+                              ? Image.file(_image!,
+                                  height: 300,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover)
+                              : Container(
+                                  height: 300,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: bgcolor,
+                                  )),
+                          Positioned(
                               top: top,
                               left: left,
                               child: Text(
                                 text,
-                                style: const TextStyle(
+                                style: TextStyle(
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                        onVerticalDragUpdate: (DragUpdateDetails dd) {
-                          setState(() {
-                            top = dd.localPosition.dy;
-                            left = dd.localPosition.dx;
-                          });
-                        },
+                                    color: txColor),
+                              ))
+                        ],
                       ),
+                      onVerticalDragUpdate: (DragUpdateDetails dd) {
+                        setState(() {
+                          top = dd.localPosition.dy;
+                          left = dd.localPosition.dx;
+                        });
+                      },
                     ),
                     const SizedBox(
                       height: 10,
@@ -139,29 +134,64 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void pickColor(BuildContext context) => showDialog(
+  void pickBgColor(BuildContext context) => showDialog(
       context: context,
       builder: (context) => AlertDialog(
-            title: const Text("Pick color"),
+            title: const Text("Pick color for Background"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                buildColorPicker(),
+                buildBgColorPicker(),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: const Text("SELECT",style: TextStyle(fontSize: 16),),
+                  child: const Text(
+                    "SELECT",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              ],
+            ),
+          ));
+  void pickTxColor(BuildContext context) => showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: const Text("Pick color for Text"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                buildTxColorPicker(),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    "SELECT",
+                    style: TextStyle(fontSize: 16),
+                  ),
                 )
               ],
             ),
           ));
 
-  Widget buildColorPicker() {
-    return ColorPicker(pickerColor: color, onColorChanged: (color){
-      setState(() {
-        this.color = color;
-      });
-    });
+  Widget buildBgColorPicker() {
+    return ColorPicker(
+        pickerColor: bgcolor,
+        onColorChanged: (color) {
+          setState(() {
+            bgcolor = color;
+          });
+        });
+  }
+
+  Widget buildTxColorPicker() {
+    return ColorPicker(
+        pickerColor: txColor,
+        onColorChanged: (color) {
+          setState(() {
+            txColor = color;
+          });
+        });
   }
 }
