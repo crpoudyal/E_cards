@@ -1,9 +1,15 @@
 import 'dart:io';
-
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:memesansar/widgets/drawer_widget.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:screenshot/screenshot.dart';
+import 'dart:math' as math;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -13,12 +19,31 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    _requestPermission();
+    super.initState();
+  }
+
+  ScreenshotController screenshotController = ScreenshotController();
+
   String text = "";
   double top = 10;
   double left = 10;
+  double _value = 20;
+  double finalAngle = 0.0;
   Color bgcolor = Colors.orange;
   Color txColor = Colors.white;
   File? _image;
+
+  _requestPermission() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+    ].request();
+    final info = statuses[Permission.storage].toString();
+    print(info);
+  }
+
   Future getImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image == null) return;
@@ -35,7 +60,15 @@ class HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text("meme sansar"),
         actions: [
-          IconButton(onPressed: () {}, icon: const Icon(Icons.download)),
+          IconButton(
+              onPressed: () {
+                screenshotController.capture().then((capturedImage) async {
+                  showCapturedImage(context, capturedImage!);
+                }).catchError((onError) {
+                  print(onError);
+                });
+              },
+              icon: const Icon(Icons.download)),
         ],
       ),
       drawer: DrawerWidget(),
@@ -66,7 +99,9 @@ class HomeScreenState extends State<HomeScreen> {
                             },
                             icon: const Icon(Icons.format_color_fill)),
                         IconButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              txEdit(context);
+                            },
                             icon: const Icon(Icons.text_fields)),
                       ],
                     ),
@@ -74,35 +109,47 @@ class HomeScreenState extends State<HomeScreen> {
                       height: 10,
                     ),
                     GestureDetector(
-                      child: Stack(
-                        children: [
-                          _image != null
-                              ? Image.file(_image!,
-                                  height: 300,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover)
-                              : Container(
-                                  height: 300,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: bgcolor,
-                                  )),
-                          Positioned(
-                              top: top,
-                              left: left,
-                              child: Text(
-                                text,
-                                style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: txColor),
-                              ))
-                        ],
+                      child: Screenshot(
+                        controller: screenshotController,
+                        child: Stack(
+                          children: [
+                            _image != null
+                                ? Image.file(_image!,
+                                    height: 300,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover)
+                                : Container(
+                                    height: 300,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: bgcolor,
+                                    )),
+                            Positioned(
+                                top: top,
+                                left: left,
+                                child: Transform.rotate(
+                                  angle: finalAngle,
+                                  origin: const Offset(0, 0),
+                                  child: Text(
+                                    text,
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: txColor),
+                                  ),
+                                ))
+                          ],
+                        ),
                       ),
+                      onPanUpdate: (details) {
+                        setState(() {
+                          finalAngle += details.delta.distance * pi / 180;
+                        });
+                      },
                       onVerticalDragUpdate: (DragUpdateDetails dd) {
                         setState(() {
-                          top = dd.localPosition.dy;
-                          left = dd.localPosition.dx;
+                          top = dd.localPosition.dy - 50;
+                          left = dd.localPosition.dx - 50;
                         });
                       },
                     ),
@@ -129,6 +176,37 @@ class HomeScreenState extends State<HomeScreen> {
               )
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Future<dynamic> showCapturedImage(
+      BuildContext context, Uint8List capturedImage) {
+    return showDialog(
+      useSafeArea: false,
+      context: context,
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          title: const Text("Captured Image"),
+        ),
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            capturedImage != null ? Image.memory(capturedImage) : Container(),
+            const SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+                onPressed: () async {
+                  var appDocDir = await getTemporaryDirectory();
+                  print("AppDocDir --- ${appDocDir.path}");
+                  String savePath = "${appDocDir.path}/temp.png";
+                  final result = await ImageGallerySaver.saveFile(savePath);
+                  print("This is the result---->$result");
+                },
+                child: const Text("Save to Gallery"))
+          ],
         ),
       ),
     );
@@ -174,6 +252,26 @@ class HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ));
+  void txEdit(BuildContext context) => showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+            title: const Text("Style Text"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                buildTxStylePicker(),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text(
+                    "SELECT",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                )
+              ],
+            ),
+          ));
 
   Widget buildBgColorPicker() {
     return ColorPicker(
@@ -193,5 +291,29 @@ class HomeScreenState extends State<HomeScreen> {
             txColor = color;
           });
         });
+  }
+
+  Widget buildTxStylePicker() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            const Text("Size"),
+            Slider(
+              min: 0.0,
+              max: 100.0,
+              value: _value,
+              onChanged: (value) {
+                print("values ---> $value");
+                setState(() {
+                  _value = value;
+                  print(_value);
+                });
+              },
+            ),
+          ],
+        ),
+      ],
+    );
   }
 }
