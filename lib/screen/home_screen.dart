@@ -6,10 +6,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:memesansar/widgets/drawer_widget.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
-import 'dart:math' as math;
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -199,17 +197,30 @@ class HomeScreenState extends State<HomeScreen> {
             ),
             ElevatedButton(
                 onPressed: () async {
-                  var appDocDir = await getTemporaryDirectory();
-                  print("AppDocDir --- ${appDocDir.path}");
-                  String savePath = "${appDocDir.path}/temp.png";
-                  final result = await ImageGallerySaver.saveFile(savePath);
-                  print("This is the result---->$result");
+                  saveToGallery(context);
+                  // var appDocDir = await getTemporaryDirectory();
+                  // print("AppDocDir --- ${appDocDir.path}");
+                  // String savePath = "${appDocDir.path}/temp.png";
+                  // final result = await ImageGallerySaver.saveFile(savePath);
+                  // print("This is the result---->$result");
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Image is saved to gallery")));
                 },
                 child: const Text("Save to Gallery"))
           ],
         ),
       ),
     );
+  }
+  saveToGallery(BuildContext context){
+    screenshotController.capture().then((Uint8List? image) => saveImage(image!));
+  }
+
+  saveImage(Uint8List bytes)async{
+final time = DateTime.now().toIso8601String().replaceAll('.', '-').replaceAll(':', '-');
+final name = "memesansar_$time";
+await _requestPermission();
+await ImageGallerySaver.saveImage(bytes,name: name);
+
   }
 
   void pickBgColor(BuildContext context) => showDialog(
