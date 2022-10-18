@@ -6,8 +6,10 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:memesansar/widgets/drawer_widget.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,12 +19,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  @override
-  void initState() {
-    _requestPermission();
-    super.initState();
-  }
-
   ScreenshotController screenshotController = ScreenshotController();
 
   String text = "";
@@ -34,6 +30,8 @@ class HomeScreenState extends State<HomeScreen> {
   Color txColor = Colors.white;
   File? _image;
 
+  // Handling Permission for Storage
+
   _requestPermission() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.storage,
@@ -41,7 +39,7 @@ class HomeScreenState extends State<HomeScreen> {
     final info = statuses[Permission.storage].toString();
     print(info);
   }
-
+  // Getting gallery Image with ImagePicker pkg
   Future getImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (image == null) return;
@@ -123,27 +121,30 @@ class HomeScreenState extends State<HomeScreen> {
                                       color: bgcolor,
                                     )),
                             Positioned(
-                                top: top,
-                                left: left,
-                                child: Transform.rotate(
-                                  angle: finalAngle,
-                                  origin: const Offset(0, 0),
-                                  child: Text(
-                                    text,
-                                    style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: txColor),
-                                  ),
-                                ))
+                              top: top,
+                              left: left,
+                              child: Transform.rotate(
+                                angle: finalAngle,
+                                origin: const Offset(0, 0),
+                                child: Text(
+                                  text,
+                                  style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: txColor),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
+                      // for rotating text widget
                       onPanUpdate: (details) {
                         setState(() {
                           finalAngle += details.delta.distance * pi / 180;
                         });
                       },
+                      // for moving text widget
                       onVerticalDragUpdate: (DragUpdateDetails dd) {
                         setState(() {
                           top = dd.localPosition.dy - 50;
@@ -167,8 +168,6 @@ class HomeScreenState extends State<HomeScreen> {
                     const SizedBox(
                       height: 10,
                     ),
-                    ElevatedButton(
-                        onPressed: () {}, child: const Text("Share")),
                   ],
                 ),
               )
@@ -178,6 +177,8 @@ class HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  // Showing Captured Image
 
   Future<dynamic> showCapturedImage(
       BuildContext context, Uint8List capturedImage) {
@@ -198,29 +199,43 @@ class HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
                 onPressed: () async {
                   saveToGallery(context);
-                  // var appDocDir = await getTemporaryDirectory();
-                  // print("AppDocDir --- ${appDocDir.path}");
-                  // String savePath = "${appDocDir.path}/temp.png";
-                  // final result = await ImageGallerySaver.saveFile(savePath);
-                  // print("This is the result---->$result");
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Image is saved to gallery")));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("Image is saved to gallery")));
                 },
-                child: const Text("Save to Gallery"))
+                child: const Text("Save to Gallery")),
+            const SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+                onPressed: () async {
+                  final imagepick = await ImagePicker()
+                      .pickImage(source: ImageSource.gallery);
+                  if (imagepick == null) {
+                    return;
+                  }
+                  await Share.shareFiles([imagepick.path]);
+                },
+                child: const Text("Share")),
           ],
         ),
       ),
     );
   }
-  saveToGallery(BuildContext context){
-    screenshotController.capture().then((Uint8List? image) => saveImage(image!));
+
+  saveToGallery(BuildContext context) {
+    screenshotController
+        .capture()
+        .then((Uint8List? image) => saveImage(image!));
   }
 
-  saveImage(Uint8List bytes)async{
-final time = DateTime.now().toIso8601String().replaceAll('.', '-').replaceAll(':', '-');
-final name = "memesansar_$time";
-await _requestPermission();
-await ImageGallerySaver.saveImage(bytes,name: name);
-
+  saveImage(Uint8List bytes) async {
+    final time = DateTime.now()
+        .toIso8601String()
+        .replaceAll('.', '-')
+        .replaceAll(':', '-');
+    final name = "memesansar_$time";
+    await _requestPermission();
+    await ImageGallerySaver.saveImage(bytes, name: name);
   }
 
   void pickBgColor(BuildContext context) => showDialog(
@@ -314,7 +329,7 @@ await ImageGallerySaver.saveImage(bytes,name: name);
               min: 0.0,
               max: 100.0,
               value: _value,
-              onChanged: (value) {
+              onChanged: (double value) {
                 print("values ---> $value");
                 setState(() {
                   _value = value;
