@@ -39,6 +39,7 @@ class HomeScreenState extends State<HomeScreen> {
     final info = statuses[Permission.storage].toString();
     print(info);
   }
+
   // Getting gallery Image with ImagePicker pkg
   Future getImage() async {
     final image = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -67,7 +68,6 @@ class HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.download)),
         ],
       ),
-      // hello / hsfshf
       drawer: DrawerWidget(),
       body: SingleChildScrollView(
         child: SafeArea(
@@ -330,11 +330,9 @@ class HomeScreenState extends State<HomeScreen> {
               min: 0.0,
               max: 100.0,
               value: _value,
-              onChanged: (double value) {
-                print("values ---> $value");
+              onChanged: (val) {
                 setState(() {
-                  _value = value;
-                  print(_value);
+                  val = _value;
                 });
               },
             ),
