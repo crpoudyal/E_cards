@@ -6,7 +6,6 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:memesansar/widgets/drawer_widget.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -24,7 +23,7 @@ class HomeScreenState extends State<HomeScreen> {
   String text = "";
   double top = 10;
   double left = 10;
-  double _value = 20;
+  double value = 20;
   double finalAngle = 0.0;
   Color bgcolor = Colors.orange;
   Color txColor = Colors.white;
@@ -68,7 +67,7 @@ class HomeScreenState extends State<HomeScreen> {
               icon: const Icon(Icons.download)),
         ],
       ),
-      drawer: DrawerWidget(),
+      drawer: const DrawerWidget(),
       body: SingleChildScrollView(
         child: SafeArea(
           child: Column(
@@ -329,11 +328,9 @@ class HomeScreenState extends State<HomeScreen> {
             Slider(
               min: 0.0,
               max: 100.0,
-              value: _value,
+              value: value,
               onChanged: (val) {
-                setState(() {
-                  val = _value;
-                });
+                value = val;
               },
             ),
           ],
