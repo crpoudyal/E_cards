@@ -242,20 +242,22 @@ class HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (context) => AlertDialog(
             title: const Text("Pick color for Background"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                buildBgColorPicker(),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    "SELECT",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
-              ],
+            content: Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  buildBgColorPicker(),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text(
+                      "SELECT",
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  )
+                ],
+              ),
             ),
           ));
   void pickTxColor(BuildContext context) => showDialog(
