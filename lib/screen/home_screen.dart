@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:Ecards/widgets/drawer_widget.dart';
+import 'package:Ecards/widgets/edit_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:memesansar/widgets/drawer_widget.dart';
-import 'package:memesansar/widgets/edit_image.dart';
 import 'package:screenshot/screenshot.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,12 +16,15 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends EditImage {
   File? _image;
+  bool _isVisible = false;
+
+  double value = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("meme sansar"),
+        title: const Text("E-cards"),
         actions: [
           IconButton(
               onPressed: () {
@@ -63,7 +66,7 @@ class HomeScreenState extends EditImage {
                             icon: const Icon(Icons.format_color_fill)),
                         IconButton(
                             onPressed: () {
-                              txEdit(context);
+                              visibleTextEditControl();
                             },
                             icon: const Icon(Icons.text_fields)),
                       ],
@@ -71,16 +74,58 @@ class HomeScreenState extends EditImage {
                     const SizedBox(
                       height: 10,
                     ),
+                    Visibility(
+                      visible: _isVisible,
+                      child: Card(
+                        elevation: 10,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text("size"),
+                                  Slider(
+                                      value: value,
+                                      onChanged: (val) {
+                                        setState(() {
+                                          value = val;
+                                        });
+                                      })
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Text("size"),
+                                  Slider(
+                                      value: value,
+                                      onChanged: (val) {
+                                        setState(() {
+                                          value = val;
+                                        });
+                                      })
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                     GestureDetector(
                       child: Screenshot(
                         controller: screenshotController,
                         child: Stack(
                           children: [
                             _image != null
-                                ? Image.file(_image!,
-                                    height: 300,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover)
+                                ? InteractiveViewer(
+                                    minScale: 0.1,
+                                    child: Image.file(_image!,
+                                        height: 300,
+                                        width: double.infinity,
+                                        fit: BoxFit.cover),
+                                  )
                                 : Container(
                                     height: 300,
                                     width: double.infinity,
@@ -123,6 +168,7 @@ class HomeScreenState extends EditImage {
                       height: 10,
                     ),
                     TextFormField(
+                      controller: textEditingController,
                       onChanged: (data) {
                         setState(() {
                           text = data;
@@ -135,6 +181,28 @@ class HomeScreenState extends EditImage {
                     const SizedBox(
                       height: 10,
                     ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              text = textEditingController.text;
+                              textEditingController.text = "";
+                            });
+                          },
+                          child: const Text("Save"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              textEditingController.text = "";
+                            });
+                          },
+                          child: const Text("Clear"),
+                        )
+                      ],
+                    )
                   ],
                 ),
               )
@@ -153,6 +221,12 @@ class HomeScreenState extends EditImage {
 
     setState(() {
       _image = tempImage;
+    });
+  }
+
+  void visibleTextEditControl() {
+    setState(() {
+      _isVisible = !_isVisible;
     });
   }
 }

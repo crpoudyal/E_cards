@@ -16,16 +16,9 @@ class DrawerWidgetState extends State<DrawerWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: const [
-          ListTile(
-            leading: Icon(Icons.person),
-            title: Text('Profile'),
-          ),
-          ListTile(
-            title: Text('About'),
-          ),
-          ListTile(
-            title: Text('Profile'),
-          ),
+          ListTile(leading: Icon(Icons.person), title: Text('Profile')),
+          ListTile(title: Text('About')),
+          ListTile(title: Text('Profile')),
         ],
       ),
     ));

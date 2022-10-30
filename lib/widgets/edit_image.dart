@@ -1,21 +1,21 @@
 import 'dart:typed_data';
 
+import 'package:Ecards/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:memesansar/screen/home_screen.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 
 abstract class EditImage extends State<HomeScreen> {
   ScreenshotController screenshotController = ScreenshotController();
+  TextEditingController textEditingController = TextEditingController();
 
   String text = "";
   double top = 10;
   double left = 10;
-  double value = 20;
   double finalAngle = 0.0;
   Color bgcolor = Colors.orange;
   Color txColor = Colors.white;
@@ -61,10 +61,12 @@ abstract class EditImage extends State<HomeScreen> {
                 onPressed: () async {
                   final imagepick = await ImagePicker()
                       .pickImage(source: ImageSource.gallery);
+
                   if (imagepick == null) {
                     return;
                   }
-                  await Share.shareFiles([imagepick.path]);
+                  await Share.shareXFiles([XFile(imagepick.path)],
+                      text: "Great");
                 },
                 child: const Text("Share")),
           ],
@@ -84,7 +86,7 @@ abstract class EditImage extends State<HomeScreen> {
         .toIso8601String()
         .replaceAll('.', '-')
         .replaceAll(':', '-');
-    final name = "memesansar_$time";
+    final name = "Ecards_$time";
     await _requestPermission();
     await ImageGallerySaver.saveImage(bytes, name: name);
   }
@@ -111,6 +113,7 @@ abstract class EditImage extends State<HomeScreen> {
               ),
             ),
           ));
+
   void pickTxColor(BuildContext context) => showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -119,27 +122,6 @@ abstract class EditImage extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 buildTxColorPicker(),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    "SELECT",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
-              ],
-            ),
-          ));
-
-  void txEdit(BuildContext context) => showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-            title: const Text("Style Text"),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                buildTxStylePicker(),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
@@ -171,25 +153,5 @@ abstract class EditImage extends State<HomeScreen> {
             txColor = color;
           });
         });
-  }
-
-  Widget buildTxStylePicker() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            const Text("Size"),
-            Slider(
-              min: 0.0,
-              max: 100.0,
-              value: value,
-              onChanged: (val) {
-                value = val;
-              },
-            ),
-          ],
-        ),
-      ],
-    );
   }
 }

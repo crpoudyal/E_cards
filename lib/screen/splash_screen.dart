@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:Ecards/screen/home_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:memesansar/screen/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -30,8 +30,8 @@ class SplashScreenState extends State<SplashScreen> {
     return const Scaffold(
       body: Center(
         child: Text(
-          "meme sansar",
-          style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold),
+          "E-cards",
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
       ),
     );
