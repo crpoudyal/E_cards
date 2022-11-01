@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:Ecards/screen/home_screen.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
@@ -58,17 +60,14 @@ abstract class EditImage extends State<HomeScreen> {
               height: 10,
             ),
             ElevatedButton(
-                onPressed: () async {
-                  final imagepick = await ImagePicker()
-                      .pickImage(source: ImageSource.gallery);
-
-                  if (imagepick == null) {
-                    return;
-                  }
-                  await Share.shareXFiles([XFile(imagepick.path)],
-                      text: "Great");
-                },
-                child: const Text("Share")),
+              onPressed: () async {
+                final Directory temp = await getTemporaryDirectory();
+                final path = '${temp.path}/ecardimage.jpg';
+                File(path).writeAsBytesSync(capturedImage.buffer.asUint8List());
+                await Share.shareXFiles([XFile(path)]);
+              },
+              child: const Text("Share"),
+            ),
           ],
         ),
       ),
@@ -86,6 +85,7 @@ abstract class EditImage extends State<HomeScreen> {
         .toIso8601String()
         .replaceAll('.', '-')
         .replaceAll(':', '-');
+    print('time -- $time');
     final name = "Ecards_$time";
     await _requestPermission();
     await ImageGallerySaver.saveImage(bytes, name: name);

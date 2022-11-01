@@ -17,8 +17,13 @@ class HomeScreen extends StatefulWidget {
 class HomeScreenState extends EditImage {
   File? _image;
   bool _isVisible = false;
-
   double value = 0;
+
+  @override
+  void dispose() {
+    textEditingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,19 +100,6 @@ class HomeScreenState extends EditImage {
                                       })
                                 ],
                               ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text("size"),
-                                  Slider(
-                                      value: value,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          value = val;
-                                        });
-                                      })
-                                ],
-                              ),
                             ],
                           ),
                         ),
@@ -121,6 +113,7 @@ class HomeScreenState extends EditImage {
                             _image != null
                                 ? InteractiveViewer(
                                     minScale: 0.1,
+                                    maxScale: 2.0,
                                     child: Image.file(_image!,
                                         height: 300,
                                         width: double.infinity,
@@ -197,6 +190,7 @@ class HomeScreenState extends EditImage {
                           onPressed: () {
                             setState(() {
                               textEditingController.text = "";
+                              text = "";
                             });
                           },
                           child: const Text("Clear"),
