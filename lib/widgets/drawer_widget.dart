@@ -16,9 +16,21 @@ class DrawerWidgetState extends State<DrawerWidget> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: const [
-          ListTile(leading: Icon(Icons.person), title: Text('Profile')),
-          ListTile(title: Text('About')),
-          ListTile(title: Text('Profile')),
+          Center(
+            child: Text(
+              "Select E-cards",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+            ),
+          ),
+          ListTile(title: Text('Holi - होली')),
+          ListTile(title: Text('Chatt Puja - छठ पूजा')),
+          ListTile(title: Text('Tihar - तिहार')),
+          ListTile(title: Text('Dashain - दशैं')),
+          ListTile(title: Text('Shamadhan Diwash - सम्बिधान दिवस')),
+          ListTile(title: Text('Indra Jatra - इन्द्र जात्रा')),
+          ListTile(title: Text('Gai Jatra - गाई जात्रा')),
+          ListTile(title: Text('Ghoda Jatra - घोडे जात्रा')),
+          ListTile(title: Text('Teej - तीज')),
         ],
       ),
     ));

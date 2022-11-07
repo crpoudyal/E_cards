@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:Ecards/model/text_info.dart';
 import 'package:Ecards/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
@@ -15,20 +16,27 @@ abstract class EditImage extends State<HomeScreen> {
   ScreenshotController screenshotController = ScreenshotController();
   TextEditingController textEditingController = TextEditingController();
 
-  String text = "";
-  double top = 10;
-  double left = 10;
-  double finalAngle = 0.0;
+  double containerHeight = 300;
   Color bgcolor = Colors.orange;
   Color txColor = Colors.white;
+  bool _isVisible = false;
+
+  List<TextInfo> texts = [];
+  int currentIndex = 0;
 
   // Handling Permission for Storage
 
-  _requestPermission() async {
+  requestPermission() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.storage,
     ].request();
     statuses[Permission.storage].toString();
+  }
+
+  void visibleTextEditControl() {
+    setState(() {
+      _isVisible = !_isVisible;
+    });
   }
 
   // Showing Captured Image
@@ -45,7 +53,7 @@ abstract class EditImage extends State<HomeScreen> {
         body: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            capturedImage != null ? Image.memory(capturedImage) : Container(),
+            Image.memory(capturedImage),
             const SizedBox(
               height: 10,
             ),
@@ -85,9 +93,8 @@ abstract class EditImage extends State<HomeScreen> {
         .toIso8601String()
         .replaceAll('.', '-')
         .replaceAll(':', '-');
-    print('time -- $time');
     final name = "Ecards_$time";
-    await _requestPermission();
+    await requestPermission();
     await ImageGallerySaver.saveImage(bytes, name: name);
   }
 
@@ -104,9 +111,19 @@ abstract class EditImage extends State<HomeScreen> {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text(
-                      "SELECT",
-                      style: TextStyle(fontSize: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text(
+                            "SELECT",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 ],
@@ -122,15 +139,30 @@ abstract class EditImage extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 buildTxColorPicker(),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    "SELECT",
-                    style: TextStyle(fontSize: 16),
-                  ),
-                )
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        texts[currentIndex].color = txColor;
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        "SELECT",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        "CANCEL",
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ));
@@ -151,7 +183,197 @@ abstract class EditImage extends State<HomeScreen> {
         onColorChanged: (color) {
           setState(() {
             txColor = color;
+            texts[currentIndex].color = color;
           });
         });
+  }
+
+  Widget visibleData() {
+    return Visibility(
+      visible: _isVisible,
+      child: Card(
+        elevation: 10,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                        onPressed: () {
+                          boldText();
+                        },
+                        icon: const Icon(Icons.format_bold)),
+                    IconButton(
+                        onPressed: () {
+                          italicText();
+                        },
+                        icon: const Icon(Icons.format_italic)),
+                    IconButton(
+                        onPressed: () {
+                          underlineText();
+                        },
+                        icon: const Icon(Icons.format_underline)),
+                    IconButton(
+                        onPressed: () {
+                          linethroughText();
+                        },
+                        icon: const Icon(Icons.format_strikethrough)),
+                    IconButton(
+                        onPressed: () {
+                          leftAlign();
+                        },
+                        icon: const Icon(Icons.format_align_left)),
+                    IconButton(
+                        onPressed: () {
+                          centerAlign();
+                        },
+                        icon: const Icon(Icons.format_align_center)),
+                    IconButton(
+                        onPressed: () {
+                          rightAlign();
+                        },
+                        icon: const Icon(Icons.format_align_right)),
+                    IconButton(
+                        onPressed: () {
+                          increaseFontSize();
+                        },
+                        icon: const Icon(Icons.add)),
+                    IconButton(
+                        onPressed: () {
+                          decreaseFontSize();
+                        },
+                        icon: const Icon(Icons.remove)),
+                    IconButton(
+                        onPressed: () {
+                          addLinesToText();
+                        },
+                        icon: const Icon(Icons.space_bar)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  removeText(BuildContext context) {
+    setState(() {
+      texts.removeAt(currentIndex);
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Deleted',
+          style: TextStyle(
+            fontSize: 16.0,
+          ),
+        ),
+      ),
+    );
+  }
+
+  setCurrentIndex(BuildContext context, index) {
+    setState(() {
+      currentIndex = index;
+      textEditingController.text = texts[index].text;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Selected for styling',
+          style: TextStyle(
+            fontSize: 16.0,
+          ),
+        ),
+      ),
+    );
+  }
+
+  boldText() {
+    setState(() {
+      if (texts[currentIndex].fontWeight == FontWeight.bold) {
+        texts[currentIndex].fontWeight = FontWeight.normal;
+      } else {
+        texts[currentIndex].fontWeight = FontWeight.bold;
+      }
+    });
+  }
+
+  italicText() {
+    setState(() {
+      if (texts[currentIndex].fontStyle == FontStyle.italic) {
+        texts[currentIndex].fontStyle = FontStyle.normal;
+      } else {
+        texts[currentIndex].fontStyle = FontStyle.italic;
+      }
+    });
+  }
+
+  addLinesToText() {
+    setState(() {
+      if (texts[currentIndex].text.contains('\n')) {
+        texts[currentIndex].text =
+            texts[currentIndex].text.replaceAll('\n', ' ');
+      } else {
+        texts[currentIndex].text =
+            texts[currentIndex].text.replaceAll(' ', '\n');
+      }
+    });
+  }
+
+  underlineText() {
+    setState(() {
+      if (texts[currentIndex].underline == TextDecoration.underline) {
+        texts[currentIndex].underline = TextDecoration.none;
+      } else {
+        texts[currentIndex].underline = TextDecoration.underline;
+      }
+    });
+  }
+
+  linethroughText() {
+    setState(() {
+      if (texts[currentIndex].underline == TextDecoration.lineThrough) {
+        texts[currentIndex].underline = TextDecoration.none;
+      } else {
+        texts[currentIndex].underline = TextDecoration.lineThrough;
+      }
+    });
+  }
+
+  leftAlign() {
+    setState(() {
+      texts[currentIndex].textAlign == TextAlign.left;
+    });
+  }
+
+  rightAlign() {
+    setState(() {
+      texts[currentIndex].textAlign == TextAlign.right;
+    });
+  }
+
+  centerAlign() {
+    setState(() {
+      texts[currentIndex].textAlign == TextAlign.center;
+    });
+  }
+
+  increaseFontSize() {
+    setState(() {
+      texts[currentIndex].fontSize += 2;
+    });
+  }
+
+  decreaseFontSize() {
+    setState(() {
+      texts[currentIndex].fontSize -= 2;
+    });
   }
 }
