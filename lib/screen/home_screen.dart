@@ -1,8 +1,9 @@
 import 'dart:io';
-import 'dart:math';
 
+import 'package:Ecards/model/text_info.dart';
 import 'package:Ecards/widgets/drawer_widget.dart';
 import 'package:Ecards/widgets/edit_image.dart';
+import 'package:Ecards/widgets/image_text.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:screenshot/screenshot.dart';
@@ -16,8 +17,6 @@ class HomeScreen extends StatefulWidget {
 
 class HomeScreenState extends EditImage {
   File? _image;
-  bool _isVisible = false;
-  double value = 0;
 
   @override
   void dispose() {
@@ -76,95 +75,82 @@ class HomeScreenState extends EditImage {
                             icon: const Icon(Icons.text_fields)),
                       ],
                     ),
+                    visibleData(),
                     const SizedBox(
                       height: 10,
                     ),
-                    Visibility(
-                      visible: _isVisible,
-                      child: Card(
-                        elevation: 10,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Text("size"),
-                                  Slider(
-                                      value: value,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          value = val;
-                                        });
-                                      })
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      child: Screenshot(
-                        controller: screenshotController,
-                        child: Stack(
-                          children: [
-                            _image != null
-                                ? InteractiveViewer(
-                                    minScale: 0.1,
-                                    maxScale: 2.0,
-                                    child: Image.file(_image!,
-                                        height: 300,
-                                        width: double.infinity,
-                                        fit: BoxFit.cover),
-                                  )
-                                : Container(
+                    Screenshot(
+                      controller: screenshotController,
+                      child: Stack(
+                        children: [
+                          _image != null
+                              ? InteractiveViewer(
+                                  minScale: 0.1,
+                                  child: Image.file(
+                                    _image!,
                                     height: 300,
                                     width: double.infinity,
-                                    decoration: BoxDecoration(
-                                      color: bgcolor,
-                                    )),
+                                    fit: BoxFit.fill,
+                                  ),
+                                )
+                              : Container(
+                                  height: containerHeight,
+                                  width: double.infinity,
+                                  color: bgcolor,
+                                ),
+                          for (int i = 0; i < texts.length; i++)
                             Positioned(
-                              top: top,
-                              left: left,
-                              child: Transform.rotate(
-                                angle: finalAngle,
-                                origin: const Offset(0, 0),
-                                child: Text(
-                                  text,
-                                  style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: txColor),
+                              left: texts[i].left,
+                              top: texts[i].top,
+                              child: GestureDetector(
+                                onDoubleTap: () {
+                                  setState(() {
+                                    currentIndex = i;
+                                    removeText(context);
+                                  });
+                                },
+                                onTap: () => setCurrentIndex(context, i),
+                                child: Draggable(
+                                  feedback: ImageText(textInfo: texts[i]),
+                                  childWhenDragging: Container(),
+                                  onDragEnd: (drag) {
+                                    final renderBox =
+                                        context.findRenderObject() as RenderBox;
+                                    Offset off =
+                                        renderBox.globalToLocal(drag.offset);
+                                    setState(() {
+                                      texts[i].top = off.dy - 200;
+                                      texts[i].left = off.dx;
+                                    });
+                                  },
+                                  child: ImageText(textInfo: texts[i]),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
-                      // for rotating text widget
-                      onPanUpdate: (details) {
-                        setState(() {
-                          finalAngle += details.delta.distance * pi / 180;
-                        });
-                      },
-                      // for moving text widget
-                      onVerticalDragUpdate: (DragUpdateDetails dd) {
-                        setState(() {
-                          top = dd.localPosition.dy - 50;
-                          left = dd.localPosition.dx - 50;
-                        });
-                      },
                     ),
                     const SizedBox(
                       height: 10,
                     ),
                     TextFormField(
                       controller: textEditingController,
-                      onChanged: (data) {
+                      onChanged: (_) {
                         setState(() {
-                          text = data;
+                          texts.add(
+                            TextInfo(
+                              text: textEditingController.text,
+                              left: 20,
+                              top: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.normal,
+                              fontStyle: FontStyle.normal,
+                              fontSize: 20,
+                              underline: TextDecoration.none,
+                              linethrough: TextDecoration.none,
+                              textAlign: TextAlign.left,
+                            ),
+                          );
                         });
                       },
                       decoration: const InputDecoration(
@@ -174,29 +160,11 @@ class HomeScreenState extends EditImage {
                     const SizedBox(
                       height: 10,
                     ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              text = textEditingController.text;
-                              textEditingController.text = "";
-                            });
-                          },
-                          child: const Text("Save"),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              textEditingController.text = "";
-                              text = "";
-                            });
-                          },
-                          child: const Text("Clear"),
-                        )
-                      ],
-                    )
+                    ElevatedButton(
+                        onPressed: () {
+                          textEditingController.clear();
+                        },
+                        child: const Text("Save")),
                   ],
                 ),
               )
@@ -215,12 +183,6 @@ class HomeScreenState extends EditImage {
 
     setState(() {
       _image = tempImage;
-    });
-  }
-
-  void visibleTextEditControl() {
-    setState(() {
-      _isVisible = !_isVisible;
     });
   }
 }
